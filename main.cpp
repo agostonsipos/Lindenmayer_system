@@ -112,9 +112,9 @@ int main(int argc, char** argv)
 
         glBindVertexArray(vao);
 
-        glPushMatrix(); 
-        glTranslatef(start_x,start_y,0);
-        glScalef (size/win_x, size/win_y, size);
+        glPushMatrix();
+        glTranslatef((float)start_x, (float)start_y, 0);
+        glScalef ((float)(size/win_x), (float)(size/win_y), (float)size);
         glDrawArrays(GL_LINES, 0, N);
         glPopMatrix();
 

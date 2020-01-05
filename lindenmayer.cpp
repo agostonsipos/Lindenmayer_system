@@ -60,7 +60,7 @@ std::vector<Vertex> drawFigure(std::pair<std::string,int> data, glm::vec2 start)
 {
     std::string str = data.first;
     int angleDeg = data.second;
-    double angle = angleDeg*2*M_PI/360;
+    double angle = angleDeg*2*acos(-1)/360;
 
     glm::vec2 xy = start;
     glm::vec2 dir = {0.03, 0};
