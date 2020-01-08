@@ -15,6 +15,10 @@ endif(CMAKE_COMPILER_IS_GNUCXX)
 if(WIN32)
 	include_directories("../OGLPack/include")
 	link_directories("../OGLPack/lib/x86")
+else()
+	find_package(GLEW REQUIRED)
+	find_package(OpenGL REQUIRED)
+	find_package(SDL2 REQUIRED)
 endif()
 
 add_executable(Lsystems
@@ -32,7 +36,11 @@ if(WIN32)
 	target_link_libraries(Lsystems "glew32.lib")
 	target_link_libraries(Lsystems "opengl32.lib")
 
-	set(CMAKE_MSVCIDE_RUN_PATH "../OGLPack/bin/x86")
+	set(CMAKE_MSVCIDE_RUN_PATH "../OGLPack/bin/x86") # you might have to do this manually, this command does not seem to work
+else()
+	target_link_libraries(Lsystems PUBLIC ${GLEW_LIBRARIES})
+	target_link_libraries(Lsystems PUBLIC ${OPENGL_LIBRARIES})
+	target_link_libraries(Lsystems PUBLIC ${SDL2_LIBRARIES})
 endif()
 
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/examples/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/examples")
