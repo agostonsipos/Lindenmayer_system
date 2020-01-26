@@ -1,10 +1,32 @@
 #include "lindenmayer.hpp"
 #include "graphics.hpp"
 
-std::tuple<GLuint, GLuint, size_t> genBuffer(std::string fname, int plusdetail = 0, glm::vec2 start = glm::vec2(0))
+std::tuple<GLuint, GLuint, size_t> genBuffer(std::string fname, int plusdetail = 0, glm::vec2 start = glm::vec2(0), double step = 0.03)
 {
-    return bufferFromVector(drawFigure(loadAndEval(fname, plusdetail), start));
+    return bufferFromVector(drawFigure(loadAndEval(fname, plusdetail), start, step));
 }
+
+struct State {
+	// selected fractal id
+	int act = 0;
+	// detail level increase/decrease
+	int plusdetail = 0;
+	// window width and height multiplier
+	double win_x = 1, win_y = 1;
+	// translation parameters
+	double start_x, start_y;
+	// scale parameter
+	double size;
+
+	State(std::vector<glm::vec3> settings) : start_x(settings[0].x), start_y(settings[0].y), size(settings[0].z) {}
+
+	void reset(std::vector<glm::vec3> settings) {
+		start_x = settings[act].x;
+		start_y = settings[act].y;
+		size = settings[act].z;
+		plusdetail = 0;
+	}
+};
 
 int main(int argc, char** argv)
 {
@@ -19,22 +41,14 @@ int main(int argc, char** argv)
     UI ui;
     ui.init();
 
-    // OpenGL buffer
-    GLuint vao, vbo;
-    size_t N;
-    std::tie(vao, vbo, N) = genBuffer("examples/"+examples[0]);
+	State state(defaultSettings);
 
-    // selected fractal id
-    int act = 0;
-    // detail level increase/decrease
-    int plusdetail = 0;
+	// OpenGL buffer
+	GLuint vao, vbo;
+	size_t N;
+    std::tie(vao, vbo, N) = genBuffer("examples/"+examples[0], state.plusdetail);
+
     SDL_Event event;
-    // window width and height multiplier
-    double win_x = 1, win_y = 1;
-    // translation parameters
-    double start_x = defaultSettings[act].x, start_y = defaultSettings[act].y;
-    // scale parameter
-    double size = defaultSettings[act].z;
     bool quit = false;
     while (!quit)
     {
@@ -48,9 +62,9 @@ int main(int argc, char** argv)
                     break;
                 case SDL_MOUSEWHEEL:
                     if(event.wheel.y > 0)
-                        size *= 1.1;
+                        state.size *= 1.1;
                     else if(event.wheel.y < 0)
-                        size /= 1.1;
+                        state.size /= 1.1;
                     break;
                 case SDL_KEYDOWN:
                     switch(event.key.keysym.sym)
@@ -61,47 +75,44 @@ int main(int argc, char** argv)
                         case SDLK_4:
                         case SDLK_5:
                         case SDLK_6:
-                            act = event.key.keysym.sym - '1';
-                            plusdetail = 0;
-                            start_x = defaultSettings[act].x;
-                            start_y = defaultSettings[act].y;
-                            size = defaultSettings[act].z;
+							state.act = event.key.keysym.sym - '1';
+							state.reset(defaultSettings);
                             bufferChange = true;
                             break;
                         case SDLK_p:
-                            ++plusdetail;
-                            size /= scalefactors[act];
+                            ++state.plusdetail;
+							state.size /= scalefactors[state.act];
                             bufferChange = true;
                             break;
                         case SDLK_m:
-                            --plusdetail;
-                            size *= scalefactors[act];
+                            --state.plusdetail;
+							state.size *= scalefactors[state.act];
                             bufferChange = true;
                             break;
                         case SDLK_UP:
-                            start_y += 0.02;
+							state.start_y += 0.02;
                             break;
                         case SDLK_DOWN:
-                            start_y -= 0.02;
+							state.start_y -= 0.02;
                             break;
                         case SDLK_RIGHT:
-                            start_x += 0.02;
+							state.start_x += 0.02;
                             break;
                         case SDLK_LEFT:
-                            start_x -= 0.02;
+							state.start_x -= 0.02;
                             break;
                     }
                     if(bufferChange){
                         deleteBuffer({vao, vbo});
-                        std::tie(vao, vbo, N) = genBuffer("examples/"+examples[act], plusdetail, glm::vec2(0,0));
+                        std::tie(vao, vbo, N) = genBuffer("examples/"+examples[state.act], state.plusdetail, glm::vec2(0,0));
                     }
                     break;
                 case SDL_WINDOWEVENT:
                     if ( event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED )
                     {
                         glViewport(0, 0, event.window.data1, event.window.data2);
-                        win_x = event.window.data1 / 800.0;
-                        win_y = event.window.data2 / 600.0;
+						state.win_x = event.window.data1 / 800.0;
+						state.win_y = event.window.data2 / 600.0;
                     }
                     break;
             }
@@ -113,8 +124,8 @@ int main(int argc, char** argv)
         glBindVertexArray(vao);
 
         glPushMatrix();
-        glTranslatef((float)start_x, (float)start_y, 0);
-        glScalef ((float)(size/win_x), (float)(size/win_y), (float)size);
+        glTranslatef((float)state.start_x, (float)state.start_y, 0);
+        glScalef ((float)(state.size/ state.win_x), (float)(state.size/ state.win_y), (float)state.size);
         glDrawArrays(GL_LINES, 0, N);
         glPopMatrix();
 

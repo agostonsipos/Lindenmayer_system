@@ -11,4 +11,4 @@ std::string Lindenmayer(std::string axiom, std::map<std::string, std::string> ru
 
 std::pair<std::string,int> loadAndEval(std::string fname, int plusdetail = 0);
 
-std::vector<Vertex> drawFigure(std::pair<std::string,int> data, glm::vec2 start);
+std::vector<Vertex> drawFigure(std::pair<std::string,int> data, glm::vec2 start, double step);

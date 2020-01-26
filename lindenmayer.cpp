@@ -46,8 +46,8 @@ std::pair<std::string,int> loadAndEval(std::string fname, int plusdetail)
     detail += plusdetail;
     if(detail >= 0)
         return std::make_pair(Lindenmayer(axiom, rules, detail), angle);
-    else
-        return std::make_pair("", angle);
+	else
+		return std::make_pair("", angle);
 }
 
 struct state{
@@ -56,14 +56,14 @@ struct state{
 };
 
 // calculates point positions based on L-system string
-std::vector<Vertex> drawFigure(std::pair<std::string,int> data, glm::vec2 start)
+std::vector<Vertex> drawFigure(std::pair<std::string,int> data, glm::vec2 start, double step)
 {
     std::string str = data.first;
     int angleDeg = data.second;
-    double angle = angleDeg*2*acos(-1)/360;
+    double angle = angleDeg*2.0*acos(-1)/360;
 
     glm::vec2 xy = start;
-    glm::vec2 dir = {0.03, 0};
+    glm::vec2 dir = {step, 0};
     
     glm::mat2 rot = {cos(angle), -sin(angle), sin(angle), cos(angle)};
     
